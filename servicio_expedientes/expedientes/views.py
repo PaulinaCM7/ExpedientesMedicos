@@ -121,3 +121,60 @@ def buscar_seguro(request):
             'error': str(e),
             'mensaje': 'Error al buscar notas médicas'
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def crear_inseguro(request):
+    try:
+        id_paciente = request.data.get('id_paciente')
+        id_doctor = request.data.get('id_doctor')
+        fecha_consulta = request.data.get('fecha_consulta')
+        diagnostico = request.data.get('diagnostico')
+        tratamiento = request.data.get('tratamiento')
+
+        query = f"""
+            INSERT INTO expedientes_notamedica
+            (id_paciente, id_doctor, fecha_consulta, diagnostico, tratamiento, fecha_creacion, fecha_actualizacion)
+            VALUES ({id_paciente}, {id_doctor}, '{fecha_consulta}', '{diagnostico}', '{tratamiento}', datetime('now'), datetime('now'))
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            nota_id = cursor.lastrowid
+
+        return Response({
+            'mensaje': 'Nota médica creada exitosamente (método inseguro)',
+            'advertencia': 'Este endpoint es vulnerable a SQL Injection y Asignación Masiva',
+            'datos': {
+                'id': nota_id,
+                'id_paciente': id_paciente,
+                'id_doctor': id_doctor,
+                'fecha_consulta': fecha_consulta,
+                'diagnostico': diagnostico,
+                'tratamiento': tratamiento
+            }
+        }, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response({
+            'error': str(e),
+            'mensaje': 'Error al crear nota médica'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def crear_seguro(request):
+    serializer = NotaMedicaSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+
+        return Response({
+            'mensaje': 'Nota médica creada exitosamente (método seguro)',
+            'datos': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    return Response({
+        'error': serializer.errors,
+        'mensaje': 'Error de validación'
+    }, status=status.HTTP_400_BAD_REQUEST)
