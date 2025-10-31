@@ -68,16 +68,14 @@ def registro_seguro(request):
 def perfil_inseguro(request, id):
     try:
         nombre = request.data.get('nombre')
-        fecha_nacimiento = request.data.get('fecha_nacimiento')
-        nss = request.data.get('nss')
         email = request.data.get('email')
+        es_doctor = request.data.get('es_doctor', False)
 
         query = f"""
             UPDATE pacientes_paciente
             SET nombre = '{nombre}',
-                fecha_nacimiento = '{fecha_nacimiento}',
-                nss = '{nss}',
                 email = '{email}',
+                es_doctor = {1 if es_doctor else 0},
                 fecha_actualizacion = datetime('now')
             WHERE id = {id}
         """
@@ -87,12 +85,12 @@ def perfil_inseguro(request, id):
 
         return Response({
             'mensaje': 'Perfil actualizado exitosamente (método inseguro)',
-            'advertencia': 'Este endpoint es vulnerable a SQL Injection',
+            'advertencia': 'Este endpoint es vulnerable a SQL Injection y Asignación Masiva',
             'datos': {
                 'id': id,
                 'nombre': nombre,
                 'email': email,
-                'nss': nss
+                'es_doctor': es_doctor
             }
         }, status=status.HTTP_200_OK)
 

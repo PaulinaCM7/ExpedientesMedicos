@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from django.db import connection
+from django.db import connection, connections
 from .models import NotaMedica
 from .serializers import NotaMedicaSerializer
 
@@ -20,7 +20,7 @@ def buscar_inseguro(request):
             SELECT id FROM pacientes_paciente WHERE nss = '{nss}'
         """
 
-        with connection.cursor() as cursor:
+        with connections['pacientes_db'].cursor() as cursor:
             cursor.execute(query_paciente)
             paciente_row = cursor.fetchone()
 
@@ -87,18 +87,19 @@ def buscar_seguro(request):
                 'error': 'El parámetro NSS es requerido'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        from django.apps import apps
+        with connections['pacientes_db'].cursor() as cursor:
+            cursor.execute(
+                "SELECT id FROM pacientes_paciente WHERE nss = ?",
+                [nss]
+            )
+            paciente_row = cursor.fetchone()
 
-        Paciente = apps.get_model('pacientes', 'Paciente')
-        paciente = Paciente.objects.filter(nss=nss).first()
-
-        if not paciente:
+        if not paciente_row:
             return Response({
                 'mensaje': 'Paciente no encontrado'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        id_paciente = paciente.id
-
+        id_paciente = paciente_row[0]
 
         notas = NotaMedica.objects.filter(id_paciente=id_paciente).order_by('-fecha_consulta')
 
