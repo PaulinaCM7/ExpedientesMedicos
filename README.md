@@ -275,6 +275,82 @@ El serializador seguro solo permite modificar campos específicos definidos en `
 
 ---
 
+## 📮 Colección de Postman
+
+El proyecto incluye una colección completa de Postman para probar todos los endpoints del sistema: `Sistema de Expedientes Médicos - API.postman_collection.json`
+
+### Cómo Importar la Colección
+
+1. Abre Postman
+2. Click en **Import** (esquina superior izquierda)
+3. Selecciona el archivo `Sistema de Expedientes Médicos - API.postman_collection.json`
+4. La colección se importará con todas las carpetas y endpoints configurados
+
+### Estructura de la Colección
+
+La colección está organizada en las siguientes secciones:
+
+#### 1. Servicio de Pacientes (Puerto 8000)
+- **Endpoints Seguros ✅**
+  - Registrar Paciente (Seguro)
+  - Registrar Doctor (Seguro)
+  - Actualizar Perfil (Seguro)
+
+- **Endpoints Inseguros ⚠️**
+  - Registrar Paciente (Inseguro)
+  - Actualizar Perfil (Inseguro)
+
+- **Ataques que SÍ Funcionan en SQLite ✅🔴**
+  - Asignación Masiva - Convertirse en Doctor
+
+- **Ataques Bloqueados por SQLite 🚫**
+  - DROP TABLE - NO Funciona en SQLite
+  - DELETE Malicioso - NO Funciona en SQLite
+
+#### 2. Servicio de Expedientes (Puerto 8001)
+- **Endpoints Seguros ✅**
+  - Crear Nota Médica (Seguro)
+  - Buscar Expedientes por NSS (Seguro)
+
+- **Endpoints Inseguros ⚠️**
+  - Crear Nota Médica (Inseguro)
+  - Buscar Expedientes por NSS (Inseguro)
+
+- **Ataques que SÍ Funcionan en SQLite ✅🔴**
+  - SQL Injection - Obtener TODOS los Expedientes (`' OR '1'='1`)
+  - SQL Injection - Always True (`' OR 1=1 OR ''='`)
+  - SQL Injection - Comment-Based (`' --`)
+
+- **Ataques Bloqueados por SQLite 🚫**
+  - DROP TABLE - NO Funciona en SQLite
+
+#### 3. Resumen de Vulnerabilidades 📊
+Tabla comparativa de todos los ataques y su comportamiento en SQLite
+
+### Variables de Entorno
+
+La colección incluye dos variables configuradas automáticamente:
+- `base_url_pacientes`: http://localhost:8000
+- `base_url_expedientes`: http://localhost:8001
+
+Si tus servicios corren en puertos diferentes, puedes modificar estas variables en Postman.
+
+### Ataques Implementados
+
+#### ✅ Ataques que SÍ funcionan en SQLite:
+1. **SQL Injection OR-Based**: `' OR '1'='1` - Obtiene todos los registros
+2. **SQL Injection Always True**: `' OR 1=1 OR ''='` - Condición siempre verdadera
+3. **SQL Injection Comment**: `' --` - Comenta el resto de la query
+4. **Asignación Masiva**: Modificar campo `es_doctor` sin autorización
+
+#### 🚫 Ataques bloqueados por limitaciones de SQLite:
+1. **DROP TABLE con `;`**: SQLite bloquea múltiples sentencias en `execute()`
+2. **DELETE con `;`**: Misma limitación técnica
+
+**IMPORTANTE**: Los ataques bloqueados NO funcionan por una **limitación técnica de SQLite**, no por seguridad del código. En MySQL/PostgreSQL, estos ataques SÍ funcionarían.
+
+---
+
 ## 📝 Ejemplos de Uso
 
 ### Ejemplo 1: Registrar un Paciente (SEGURO)

