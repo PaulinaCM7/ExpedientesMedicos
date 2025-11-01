@@ -16,39 +16,39 @@ def buscar_inseguro(request):
                 'error': 'El parámetro NSS es requerido'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        query_paciente = f"""
-            SELECT id FROM pacientes_paciente WHERE nss = '{nss}'
-        """
-
+        query_paciente = f"SELECT id FROM pacientes_paciente WHERE nss = '{nss}'"
+        
         with connections['pacientes_db'].cursor() as cursor:
             cursor.execute(query_paciente)
-            paciente_row = cursor.fetchone()
+            pacientes = cursor.fetchall()
 
-        if not paciente_row:
+        if not pacientes:
             return Response({
                 'mensaje': 'Paciente no encontrado',
                 'advertencia': 'Este endpoint es vulnerable a SQL Injection'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        id_paciente = paciente_row[0]
+        id_paciente = None
+        for paciente in pacientes:
+            paciente_id = paciente[0]
+            with connection.cursor() as cursor:
+                cursor.execute(f"SELECT 1 FROM expedientes_notamedica WHERE id_paciente = {paciente_id} LIMIT 1")
+                if cursor.fetchone():
+                    id_paciente = paciente_id
+                    break
+        
+        if not id_paciente:
+            return Response({
+                'mensaje': 'Ninguno de los pacientes encontrados tiene notas médicas',
+                'pacientes_encontrados': [p[0] for p in pacientes],
+                'advertencia': 'Este endpoint es vulnerable a SQL Injection'
+            }, status=status.HTTP_404_NOT_FOUND)
 
-        query_notas = f"""
-            SELECT id, id_paciente, id_doctor, fecha_consulta, diagnostico, tratamiento, fecha_creacion, fecha_actualizacion
-            FROM expedientes_notamedica
-            WHERE id_paciente = {id_paciente}
-            ORDER BY fecha_consulta DESC
-        """
-
+        query_notas = f"SELECT * FROM expedientes_notamedica WHERE id_paciente = {id_paciente}"
+        
         with connection.cursor() as cursor:
             cursor.execute(query_notas)
             notas_rows = cursor.fetchall()
-
-        if not notas_rows:
-            return Response({
-                'mensaje': 'No se encontraron notas médicas para este paciente',
-                'advertencia': 'Este endpoint es vulnerable a SQL Injection',
-                'id_paciente': id_paciente
-            }, status=status.HTTP_404_NOT_FOUND)
 
         notas = []
         for row in notas_rows:
@@ -67,6 +67,8 @@ def buscar_inseguro(request):
             'mensaje': 'Notas médicas encontradas (método inseguro)',
             'advertencia': 'Este endpoint es vulnerable a SQL Injection',
             'total': len(notas),
+            'id_paciente_usado': id_paciente,
+            'pacientes_encontrados': [p[0] for p in pacientes],
             'notas': notas
         }, status=status.HTTP_200_OK)
 
@@ -89,7 +91,7 @@ def buscar_seguro(request):
 
         with connections['pacientes_db'].cursor() as cursor:
             cursor.execute(
-                "SELECT id FROM pacientes_paciente WHERE nss = ?",
+                "SELECT id FROM pacientes_paciente WHERE nss = %s",
                 [nss]
             )
             paciente_row = cursor.fetchone()
